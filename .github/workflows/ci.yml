@@ -22,7 +22,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }} artifacts
-        path: bend-test.pdf
+        path: test.pdf
         if-no-files-found: error
 
   macOS:
@@ -45,7 +45,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }} artifacts
-        path: bend-test.pdf
+        path: test.pdf
         if-no-files-found: error
 
   Windows:
@@ -67,5 +67,5 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }} artifacts
-        path: bend-test.pdf
+        path: test.pdf
         if-no-files-found: error
