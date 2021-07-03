@@ -62,6 +62,7 @@ afterGrace-stopBend = #(define-music-function (music) (ly:music?)
 #{
   \override Stem.stencil = ##f
   \override Flag.stencil = ##f
+  \override Accidental.stencil = ##f
   \override NoteHead.no-ledgers = ##t
   \override NoteHead.stencil = #(parenthesize-callback ly:note-head::print)
   \override NoteHead.transparent = ##t
@@ -70,6 +71,7 @@ afterGrace-stopBend = #(define-music-function (music) (ly:music?)
 
   \revert Stem.stencil
   \revert Flag.stencil
+  \revert Accidental.stencil
   \revert NoteHead.no-ledgers
   \revert NoteHead.stencil
   \revert NoteHead.transparent
