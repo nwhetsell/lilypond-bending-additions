@@ -5,59 +5,17 @@ on: [push, pull_request]
 jobs:
   Linux:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lilypond-version: [2.22.0]
     steps:
     - name: Check out repository
       uses: actions/checkout@v2
 
     - name: Install LilyPond
       run: |
-        wget --no-verbose https://lilypond.org/download/binaries/linux-64/lilypond-2.22.1-1.linux-64.sh
-        sudo sh lilypond-2.22.1-1.linux-64.sh --batch
-    - name: Clone lilypond-bend-spanner
-      run: git clone https://github.com/nwhetsell/lilypond-bend-spanner.git
-    - name: Run tests
-      run: lilypond test.ly
-
-    - name: Archive
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ runner.os }} artifacts
-        path: test.pdf
-        if-no-files-found: error
-
-  macOS:
-    runs-on: macos-latest
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
-
-    - name: Install LilyPond
-      run: |
-        brew install --cask mactex-no-gui
-        brew tap nwhetsell/lilypond
-        brew install lilypond
-    - name: Clone lilypond-bend-spanner
-      run: git clone https://github.com/nwhetsell/lilypond-bend-spanner.git
-    - name: Run tests
-      run: lilypond test.ly
-
-    - name: Archive
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ runner.os }} artifacts
-        path: test.pdf
-        if-no-files-found: error
-
-  Windows:
-    runs-on: windows-latest
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v2
-
-    - name: Install LilyPond
-      run: |
-        choco install lilypond --no-progress
-        Add-Content $Env:GITHUB_PATH "${Env:ProgramFiles(x86)}\LilyPond\usr\bin" -Encoding utf8
+        wget --no-verbose https://lilypond.org/download/binaries/linux-64/lilypond-${{ matrix.lilypond-version }}-1.linux-64.sh
+        sudo sh lilypond-${{ matrix.lilypond-version }}-1.linux-64.sh --batch
     - name: Clone lilypond-bend-spanner
       run: git clone https://github.com/nwhetsell/lilypond-bend-spanner.git
     - name: Run tests
