@@ -2,10 +2,11 @@
 
 grace-startBend = #(define-music-function (music) (ly:music?)
 #{
+  $(add-grace-property 'Voice 'TabNoteHead 'font-size '-2)
   \grace {
-    \revert TabNoteHead.font-size
     #music \startBend
   }
+  $(add-grace-property 'Voice 'TabNoteHead 'font-size '-4)
 #})
 
 % From http://lsr.di.unimi.it/LSR/Item?id=186
@@ -41,9 +42,8 @@ grace-startBend = #(define-music-function (music) (ly:music?)
 
 bent-grace = #(define-music-function (music) (ly:music?)
 #{
+  $(add-grace-property 'Voice 'TabNoteHead 'font-size '-2)
   \grace {
-    \revert TabNoteHead.font-size
-
     \override Stem.stencil = ##f
     \override Flag.stencil = ##f
     \override NoteHead.no-ledgers = ##t
@@ -56,6 +56,7 @@ bent-grace = #(define-music-function (music) (ly:music?)
     \revert NoteHead.no-ledgers
     \revert NoteHead.stencil
   }
+  $(add-grace-property 'Voice 'TabNoteHead 'font-size '-4)
 #})
 
 afterGrace-stopBend = #(define-music-function (music) (ly:music?)
