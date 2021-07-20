@@ -4,8 +4,26 @@
 \include "bending-additions.ily"
 
 music = {
-  \grace-startBend c' d\stopBend
-  \bent-grace c\preBend\startBend \afterGrace d4\stopBend\startBend { \afterGrace-stopBend c16 }
+  \grace-startBend { c'8 } d4\stopBend
+  \grace c8 d4
+  \grace-startBend { c8 } d4\stopBend
+}
+\score {
+  <<
+    \new Staff \relative {
+      \clef "treble_8"
+      \music
+    }
+    \new TabStaff \relative {
+      \music
+    }
+  >>
+}
+
+music = {
+  \bent-grace c'8\preBend\startBend \afterGrace d4\stopBend\startBend { \afterGrace-stopBend c8 }
+  \grace c8 d4
+  \bent-grace c8\preBend\startBend \afterGrace d4\stopBend\startBend { \afterGrace-stopBend c8 }
 }
 
 \score {
