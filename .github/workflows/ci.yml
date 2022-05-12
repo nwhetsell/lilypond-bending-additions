@@ -22,7 +22,7 @@ jobs:
       run: lilypond test.ly
 
     - name: Archive
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@main
       with:
         name: ${{ runner.os }} artifacts
         path: test.pdf
