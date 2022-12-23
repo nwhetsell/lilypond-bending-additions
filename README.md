@@ -1,12 +1,11 @@
 # lilypond-bending-additions
 
-You can use the file [bending-additions.ily](bending-additions.ily) in this repository with LilyPond v2.22.0 or later to add bent grace notes using `\grace-startBend`, `\bent-grace`, and `\afterGrace-stopBend`. For example, running:
+You can use the file [bending-additions.ily](bending-additions.ily) in this repository with LilyPond v2.24.0 or later to customize bent grace notes using a `Bent_grace_engraver`. For example, running:
 
 ```sh
 git clone https://github.com/nwhetsell/lilypond-bend-spanner.git
 lilypond --output=bending-additions --svg - <<EOS
-\version "2.22.0"
-\include "lilypond-bend-spanner/bending.ily"
+\version "2.24.0"
 \include "bending-additions.ily"
 \paper {
   page-breaking = #ly:one-line-auto-height-breaking
@@ -15,15 +14,19 @@ lilypond --output=bending-additions --svg - <<EOS
   right-margin = 0
   oddFooterMarkup= ##f
 }
+\layout {
+  \context { \TabVoice \consists #Bent_grace_engraver }
+  \context { \Voice \consists #Bent_grace_engraver }
+}
 \pointAndClickOff
-music = {
-  \grace-startBend { c'8 } d4\stopBend
-  \bent-grace c8\preBend\startBend \afterGrace d4\stopBend\startBend { \afterGrace-stopBend c8 }
+music = \relative {
+  \grace c'8 \^ d4
+  \grace c8\preBend \^ \afterGrace d4 \^ c8
 }
 \score {
   <<
-    \new Staff \relative { \clef "treble_8" \music }
-    \new TabStaff \relative \music
+    \new Staff { \clef "treble_8" \music }
+    \new TabStaff \music
   >>
 }
 EOS

@@ -1,15 +1,104 @@
-\version "2.22.0"
+\version "2.24.0"
 
-grace-startBend = #(define-music-function (music) (ly:music?)
-#{
-  $(add-grace-property 'Voice 'TabNoteHead 'font-size '-2)
-  \grace {
-    #music \startBend
-  }
-  $(add-grace-property 'Voice 'TabNoteHead 'font-size '-4)
-#})
+#(define (Bent_grace_engraver context)
+  (let (
+      (is-bending #f)
+      (was-bending-one-timestep-ago #f)
+      (was-bending-two-timesteps-ago #f)
+      (current-accidental '())
+      (previous-accidental '())
+      (current-bend '())
+      (previous-bend '())
+      (current-bend-style '())
+      (previous-bend-style '())
+      (current-flag '())
+      (previous-flag '())
+      (current-note-head '())
+      (previous-note-head '())
+      (current-stem '())
+      (previous-stem '())
+      (current-tab-note-head '())
+      (previous-tab-note-head '()))
 
-% From http://lsr.di.unimi.it/LSR/Item?id=186
+    (make-engraver
+      (listeners
+        ((note-event engraver event)
+          (set! is-bending (event-has-articulation? 'bend-span-event event))
+          (if is-bending
+            (for-each
+              (lambda (articulation)
+                (set! current-bend-style (ly:assoc-get 'style (ly:prob-property articulation 'tweaks))))
+              (ly:prob-property event 'articulations)))))
+
+      (acknowledgers
+        ((accidental-interface engraver grob source-engraver)
+          (set! current-accidental grob))
+        ((bend-interface engraver grob source-engraver)
+          (set! current-bend grob))
+        ((flag-interface engraver grob source-engraver)
+          (set! current-flag grob))
+        ((note-head-interface engraver grob source-engraver)
+          (let (
+              (grob-name (grob::name grob)))
+            (cond
+              ((eq? grob-name 'NoteHead) (set! current-note-head grob))
+              ((eq? grob-name 'TabNoteHead) (set! current-tab-note-head grob)))))
+        ((stem-interface engraver grob source-engraver)
+          (set! current-stem grob)))
+
+      ((stop-translation-timestep engraver)
+        (if (not (null? previous-note-head))
+          (let (
+              (moment (grob::when previous-note-head)))
+            (if (and (not (null? moment)) (not (eq? (ly:moment-grace moment) 0)))
+              (if was-bending-one-timestep-ago
+                (if (not was-bending-two-timesteps-ago)
+                  (if (eq? previous-bend-style 'pre-bend)
+                    (begin
+                      (ly:grob-set-property! previous-note-head 'no-ledgers #t)
+                      (ly:grob-set-property! previous-note-head 'stencil (parenthesize-callback ly:note-head::print))
+                      (if (not (null? previous-flag))
+                        (ly:grob-set-property! previous-flag 'stencil #f))
+                      (if (not (null? previous-stem))
+                        (ly:grob-set-property! previous-stem 'stencil #f)))))
+                (if was-bending-two-timesteps-ago
+                  (begin
+                    (ly:grob-set-property! previous-note-head 'no-ledgers #t)
+                    (ly:grob-set-property! previous-note-head 'transparent #t)
+                    (if (not (null? previous-accidental))
+                      (ly:grob-set-property! previous-accidental 'stencil #f))
+                    (if (not (null? previous-flag))
+                      (ly:grob-set-property! previous-flag 'stencil #f))
+                    (if (not (null? previous-stem))
+                      (ly:grob-set-property! previous-stem 'stencil #f))))))))
+
+        (if (not (null? previous-tab-note-head))
+          (let (
+              (moment (grob::when previous-tab-note-head)))
+            (if (and (not (null? moment)) (not (eq? (ly:moment-grace moment) 0)))
+              (if was-bending-one-timestep-ago
+                (if (not was-bending-two-timesteps-ago)
+                  (ly:grob-set-property! previous-tab-note-head 'font-size -2))))))
+
+        (set! was-bending-two-timesteps-ago was-bending-one-timestep-ago)
+        (set! was-bending-one-timestep-ago is-bending)
+        (set! is-bending #f)
+        (set! previous-accidental current-accidental)
+        (set! current-accidental '())
+        (set! previous-bend current-bend)
+        (set! current-bend '())
+        (set! previous-bend-style current-bend-style)
+        (set! current-bend-style '())
+        (set! previous-flag current-flag)
+        (set! current-flag '())
+        (set! previous-note-head current-note-head)
+        (set! current-note-head '())
+        (set! previous-stem current-stem)
+        (set! current-stem '())
+        (set! previous-tab-note-head current-tab-note-head)
+        (set! current-tab-note-head '())))))
+
+% From https://lsr.di.unimi.it/LSR/Item?id=186
 #(define (parenthesize-callback callback)
    (define (parenthesize-stencil grob)
      (let* ((fn (ly:grob-default-font grob))
@@ -39,41 +128,3 @@ grace-startBend = #(define-music-function (music) (ly:music?)
         subject-dim-y)))
 
    parenthesize-stencil)
-
-bent-grace = #(define-music-function (music) (ly:music?)
-#{
-  $(add-grace-property 'Voice 'TabNoteHead 'font-size '-2)
-  \grace {
-    \override Stem.stencil = ##f
-    \override Flag.stencil = ##f
-    \override NoteHead.no-ledgers = ##t
-    \override NoteHead.stencil = #(parenthesize-callback ly:note-head::print)
-
-    #music
-
-    \revert Stem.stencil
-    \revert Flag.stencil
-    \revert NoteHead.no-ledgers
-    \revert NoteHead.stencil
-  }
-  $(add-grace-property 'Voice 'TabNoteHead 'font-size '-4)
-#})
-
-afterGrace-stopBend = #(define-music-function (music) (ly:music?)
-#{
-  \override Stem.stencil = ##f
-  \override Flag.stencil = ##f
-  \override Accidental.stencil = ##f
-  \override NoteHead.no-ledgers = ##t
-  \override NoteHead.stencil = #(parenthesize-callback ly:note-head::print)
-  \override NoteHead.transparent = ##t
-
-  #music \stopBend
-
-  \revert Stem.stencil
-  \revert Flag.stencil
-  \revert Accidental.stencil
-  \revert NoteHead.no-ledgers
-  \revert NoteHead.stencil
-  \revert NoteHead.transparent
-#})
