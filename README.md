@@ -3,7 +3,6 @@
 You can use the file [bending-additions.ily](bending-additions.ily) in this repository with LilyPond v2.24.0 or later to customize bent grace notes using a `Bent_grace_engraver`. For example, running:
 
 ```sh
-git clone https://github.com/nwhetsell/lilypond-bend-spanner.git
 lilypond --output=bending-additions --svg - <<EOS
 \version "2.24.0"
 \include "bending-additions.ily"
