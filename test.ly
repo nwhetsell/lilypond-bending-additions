@@ -36,3 +36,13 @@ music = \relative {
     \new TabStaff \music
   >>
 }
+
+music = \relative {
+   \grace <d' f>8\preBend \^ \afterGrace <e g> \^ <dis fis>
+}
+\score {
+  <<
+    \new Staff { \clef "treble_8" \music }
+    \new TabStaff \music
+  >>
+}

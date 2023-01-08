@@ -3,100 +3,78 @@
 #(define (Bent_grace_engraver context)
   (let (
       (is-bending #f)
-      (was-bending-one-timestep-ago #f)
-      (was-bending-two-timesteps-ago #f)
-      (current-accidental '())
-      (previous-accidental '())
-      (current-bend '())
-      (previous-bend '())
-      (current-bend-style '())
-      (previous-bend-style '())
-      (current-flag '())
-      (previous-flag '())
-      (current-note-head '())
-      (previous-note-head '())
-      (current-stem '())
-      (previous-stem '())
-      (current-tab-note-head '())
-      (previous-tab-note-head '()))
+      (bend-style '())
+      (was-bending #f)
+      (tab-note-heads '())
+      (note-heads '())
+      (accidentals '())
+      (stem '())
+      (flag '()))
 
     (make-engraver
       (listeners
-        ((note-event engraver event)
-          (set! is-bending (event-has-articulation? 'bend-span-event event))
-          (if is-bending
-            (for-each
-              (lambda (articulation)
-                (set! current-bend-style (ly:assoc-get 'style (ly:prob-property articulation 'tweaks))))
-              (ly:prob-property event 'articulations)))))
+        ((bend-span-event engraver event)
+          (set! is-bending #t)
+          (set! bend-style (ly:assoc-get 'style (ly:prob-property event 'tweaks)))))
 
       (acknowledgers
         ((accidental-interface engraver grob source-engraver)
-          (set! current-accidental grob))
-        ((bend-interface engraver grob source-engraver)
-          (set! current-bend grob))
+          (set! accidentals (cons grob accidentals)))
         ((flag-interface engraver grob source-engraver)
-          (set! current-flag grob))
+          (set! flag grob))
         ((note-head-interface engraver grob source-engraver)
           (let (
               (grob-name (grob::name grob)))
             (cond
-              ((eq? grob-name 'NoteHead) (set! current-note-head grob))
-              ((eq? grob-name 'TabNoteHead) (set! current-tab-note-head grob)))))
+              ((eq? grob-name 'NoteHead) (set! note-heads (cons grob note-heads)))
+              ((eq? grob-name 'TabNoteHead) (set! tab-note-heads (cons grob tab-note-heads))))))
         ((stem-interface engraver grob source-engraver)
-          (set! current-stem grob)))
+          (set! stem grob)))
 
       ((stop-translation-timestep engraver)
-        (if (not (null? previous-note-head))
-          (let (
-              (moment (grob::when previous-note-head)))
-            (if (and (not (null? moment)) (not (eq? (ly:moment-grace moment) 0)))
-              (if was-bending-one-timestep-ago
-                (if (not was-bending-two-timesteps-ago)
-                  (if (eq? previous-bend-style 'pre-bend)
-                    (begin
-                      (ly:grob-set-property! previous-note-head 'no-ledgers #t)
-                      (ly:grob-set-property! previous-note-head 'stencil (parenthesize-callback ly:note-head::print))
-                      (if (not (null? previous-flag))
-                        (ly:grob-set-property! previous-flag 'stencil #f))
-                      (if (not (null? previous-stem))
-                        (ly:grob-set-property! previous-stem 'stencil #f)))))
-                (if was-bending-two-timesteps-ago
+        (if (not (eq? (ly:moment-grace (ly:context-current-moment context)) 0))
+          (if is-bending
+            (if (not was-bending)
+              (begin
+                (for-each
+                  (lambda (tab-note-head)
+                    (ly:grob-set-property! tab-note-head 'font-size -2))
+                  tab-note-heads)
+                (if (eq? bend-style 'pre-bend)
                   (begin
-                    (ly:grob-set-property! previous-note-head 'no-ledgers #t)
-                    (ly:grob-set-property! previous-note-head 'transparent #t)
-                    (if (not (null? previous-accidental))
-                      (ly:grob-set-property! previous-accidental 'stencil #f))
-                    (if (not (null? previous-flag))
-                      (ly:grob-set-property! previous-flag 'stencil #f))
-                    (if (not (null? previous-stem))
-                      (ly:grob-set-property! previous-stem 'stencil #f))))))))
+                    (for-each
+                      (lambda (note-head)
+                        (ly:grob-set-property! note-head 'no-ledgers #t)
+                        (ly:grob-set-property! note-head 'stencil (parenthesize-callback ly:note-head::print)))
+                      note-heads)
+                    (if (not (null? stem))
+                      (ly:grob-set-property! stem 'stencil #f))
+                    (if (not (null? flag))
+                      (ly:grob-set-property! flag 'stencil #f))))))
+            (if was-bending
+              (begin
+                (for-each
+                  (lambda (note-head)
+                    (ly:grob-set-property! note-head 'no-ledgers #t)
+                    (ly:grob-set-property! note-head 'transparent #t))
+                  note-heads)
+                (for-each
+                  (lambda (accidental)
+                    (ly:grob-set-property! accidental 'stencil #f))
+                  accidentals)
+                (if (not (null? stem))
+                  (ly:grob-set-property! stem 'stencil #f))
+                (if (not (null? flag))
+                  (ly:grob-set-property! flag 'stencil #f))))))
 
-        (if (not (null? previous-tab-note-head))
-          (let (
-              (moment (grob::when previous-tab-note-head)))
-            (if (and (not (null? moment)) (not (eq? (ly:moment-grace moment) 0)))
-              (if was-bending-one-timestep-ago
-                (if (not was-bending-two-timesteps-ago)
-                  (ly:grob-set-property! previous-tab-note-head 'font-size -2))))))
-
-        (set! was-bending-two-timesteps-ago was-bending-one-timestep-ago)
-        (set! was-bending-one-timestep-ago is-bending)
+        (set! was-bending is-bending)
         (set! is-bending #f)
-        (set! previous-accidental current-accidental)
-        (set! current-accidental '())
-        (set! previous-bend current-bend)
-        (set! current-bend '())
-        (set! previous-bend-style current-bend-style)
-        (set! current-bend-style '())
-        (set! previous-flag current-flag)
-        (set! current-flag '())
-        (set! previous-note-head current-note-head)
-        (set! current-note-head '())
-        (set! previous-stem current-stem)
-        (set! current-stem '())
-        (set! previous-tab-note-head current-tab-note-head)
-        (set! current-tab-note-head '())))))
+        (set! bend-style '())
+        (set! tab-note-heads '())
+        (set! note-heads '())
+        (set! accidentals '())
+        (set! stem '())
+        (set! flag '())))))
 
 % From https://lsr.di.unimi.it/LSR/Item?id=186
 #(define (parenthesize-callback callback)
