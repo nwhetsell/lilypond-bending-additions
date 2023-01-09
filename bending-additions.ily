@@ -32,7 +32,7 @@
           (set! stem grob)))
 
       ((stop-translation-timestep engraver)
-        (if (not (eq? (ly:moment-grace (ly:context-current-moment context)) 0))
+        (if (not (eqv? (ly:moment-grace (ly:context-current-moment context)) 0))
           (if is-bending
             (if (not was-bending)
               (begin
