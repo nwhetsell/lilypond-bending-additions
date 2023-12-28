@@ -32,27 +32,25 @@
           (set! stem grob)))
 
       ((stop-translation-timestep engraver)
-        (if (not (eqv? (ly:moment-grace (ly:context-current-moment context)) 0))
+        (unless (eqv? (ly:moment-grace (ly:context-current-moment context)) 0)
           (if is-bending
-            (if (not was-bending)
-              (begin
+            (unless was-bending
                 (for-each
                   (lambda (tab-note-head)
                     (ly:grob-set-property! tab-note-head 'font-size -2))
                   tab-note-heads)
-                (if (eq? bend-style 'pre-bend)
-                  (begin
+                (when (eq? bend-style 'pre-bend)
                     (for-each
                       (lambda (note-head)
                         (ly:grob-set-property! note-head 'no-ledgers #t)
                         (ly:grob-set-property! note-head 'stencil (parenthesize-stencil (ly:grob-property note-head 'stencil) 0.05 0.15 0.4 0.13)))
                       note-heads)
-                    (if (not (null? stem))
+                    (unless (null? stem)
                       (ly:grob-set-property! stem 'stencil #f))
-                    (if (not (null? flag))
-                      (ly:grob-set-property! flag 'stencil #f))))))
-            (if was-bending
-              (begin
+                    (unless (null? flag)
+                      (ly:grob-set-property! flag 'stencil #f))))
+          ; else
+            (when was-bending
                 (for-each
                   (lambda (note-head)
                     (ly:grob-set-property! note-head 'no-ledgers #t)
@@ -62,10 +60,10 @@
                   (lambda (accidental)
                     (ly:grob-set-property! accidental 'stencil #f))
                   accidentals)
-                (if (not (null? stem))
+                (unless (null? stem)
                   (ly:grob-set-property! stem 'stencil #f))
-                (if (not (null? flag))
-                  (ly:grob-set-property! flag 'stencil #f))))))
+                (unless (null? flag)
+                  (ly:grob-set-property! flag 'stencil #f)))))
 
         (set! was-bending is-bending)
         (set! is-bending #f)
