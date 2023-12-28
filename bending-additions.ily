@@ -35,35 +35,35 @@
         (unless (eqv? (ly:moment-grace (ly:context-current-moment context)) 0)
           (if is-bending
             (unless was-bending
-                (for-each
-                  (lambda (tab-note-head)
-                    (ly:grob-set-property! tab-note-head 'font-size -2))
-                  tab-note-heads)
-                (when (eq? bend-style 'pre-bend)
-                    (for-each
-                      (lambda (note-head)
-                        (ly:grob-set-property! note-head 'no-ledgers #t)
-                        (ly:grob-set-property! note-head 'stencil (parenthesize-stencil (ly:grob-property note-head 'stencil) 0.05 0.15 0.4 0.13)))
-                      note-heads)
-                    (unless (null? stem)
-                      (ly:grob-set-property! stem 'stencil #f))
-                    (unless (null? flag)
-                      (ly:grob-set-property! flag 'stencil #f))))
-          ; else
-            (when was-bending
+              (for-each
+                (lambda (tab-note-head)
+                  (ly:grob-set-property! tab-note-head 'font-size -2))
+                tab-note-heads)
+              (when (eq? bend-style 'pre-bend)
                 (for-each
                   (lambda (note-head)
                     (ly:grob-set-property! note-head 'no-ledgers #t)
-                    (ly:grob-set-property! note-head 'transparent #t))
+                    (ly:grob-set-property! note-head 'stencil (parenthesize-stencil (ly:grob-property note-head 'stencil) 0.05 0.15 0.4 0.13)))
                   note-heads)
-                (for-each
-                  (lambda (accidental)
-                    (ly:grob-set-property! accidental 'stencil #f))
-                  accidentals)
                 (unless (null? stem)
                   (ly:grob-set-property! stem 'stencil #f))
                 (unless (null? flag)
-                  (ly:grob-set-property! flag 'stencil #f)))))
+                  (ly:grob-set-property! flag 'stencil #f))))
+          ; else
+            (when was-bending
+              (for-each
+                (lambda (note-head)
+                  (ly:grob-set-property! note-head 'no-ledgers #t)
+                  (ly:grob-set-property! note-head 'transparent #t))
+                note-heads)
+              (for-each
+                (lambda (accidental)
+                  (ly:grob-set-property! accidental 'stencil #f))
+                accidentals)
+              (unless (null? stem)
+                (ly:grob-set-property! stem 'stencil #f))
+              (unless (null? flag)
+                (ly:grob-set-property! flag 'stencil #f)))))
 
         (set! was-bending is-bending)
         (set! is-bending #f)
