@@ -11,7 +11,7 @@ lilypond --output=bending-additions --svg - <<EOS
   top-margin = 0
   left-margin = 0
   right-margin = 0
-  oddFooterMarkup= ##f
+  oddFooterMarkup = ##f
 }
 \layout {
   \context { \TabVoice \consists #Bent_grace_engraver }
